@@ -3,6 +3,7 @@
 import arcade
 
 from floor import BLOCK_SIZE, STONE_SIZE, ChunkedFloor
+from player import Player
 
 SCREEN_TITLE = "Hexagon Rebellion"
 DEFAULT_WIDTH = 1280
@@ -16,9 +17,6 @@ WORLD_STONES_WIDE = 200
 WORLD_STONES_HIGH = 200
 WORLD_WIDTH = WORLD_STONES_WIDE * STONE_SIZE * BLOCK_SIZE
 WORLD_HEIGHT = WORLD_STONES_HIGH * STONE_SIZE * BLOCK_SIZE
-
-# Temporary: moves the camera with WASD/arrows until the player exists.
-CAMERA_SPEED = 600  # pixels per second
 
 MOVE_KEYS = {
     arcade.key.W: (0, 1), arcade.key.UP: (0, 1),
@@ -38,18 +36,20 @@ class GameWindow(arcade.Window):
 
         self.floor = ChunkedFloor(WORLD_WIDTH, WORLD_HEIGHT)
         self.camera = arcade.Camera2D()
+        self.player = Player(WORLD_WIDTH / 2, WORLD_HEIGHT / 2)
 
-        # The point the camera follows. Starts in the middle of the world.
-        self.focus_x = WORLD_WIDTH / 2
-        self.focus_y = WORLD_HEIGHT / 2
         self.keys_held = set()
+        # Mouse position on screen. Kept so the player keeps aiming at it
+        # even when the camera moves and the mouse doesn't.
+        self.mouse_x = self.width / 2 + 1
+        self.mouse_y = self.height / 2
         self._update_camera()
 
     def _update_camera(self):
-        """Center the camera on the focus point without showing past the edges."""
+        """Center the camera on the player without showing past the world edges."""
         half_w, half_h = self.width / 2, self.height / 2
-        x = min(max(self.focus_x, half_w), WORLD_WIDTH - half_w)
-        y = min(max(self.focus_y, half_h), WORLD_HEIGHT - half_h)
+        x = min(max(self.player.x, half_w), WORLD_WIDTH - half_w)
+        y = min(max(self.player.y, half_h), WORLD_HEIGHT - half_h)
         self.camera.position = (x, y)
 
     def _view_rect(self):
@@ -60,21 +60,31 @@ class GameWindow(arcade.Window):
     def on_update(self, delta_time):
         dx = sum(MOVE_KEYS[key][0] for key in self.keys_held)
         dy = sum(MOVE_KEYS[key][1] for key in self.keys_held)
-        dx, dy = max(-1, min(1, dx)), max(-1, min(1, dy))
-        self.focus_x = min(max(self.focus_x + dx * CAMERA_SPEED * delta_time, 0), WORLD_WIDTH)
-        self.focus_y = min(max(self.focus_y + dy * CAMERA_SPEED * delta_time, 0), WORLD_HEIGHT)
+        self.player.move(dx, dy, delta_time, WORLD_WIDTH, WORLD_HEIGHT)
         self._update_camera()
+
+        # Convert the mouse from screen coordinates to world coordinates.
+        left, bottom, _, _ = self._view_rect()
+        self.player.face(left + self.mouse_x, bottom + self.mouse_y)
+
         self.floor.update(*self._view_rect())
 
     def on_draw(self):
         self.clear()
         self.camera.use()
         self.floor.draw(*self._view_rect())
+        self.player.draw()
 
     def on_resize(self, width, height):
         super().on_resize(width, height)
         self.camera.match_window()
         self._update_camera()
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.mouse_x, self.mouse_y = x, y
+
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        self.mouse_x, self.mouse_y = x, y
 
     def on_key_press(self, key, modifiers):
         if key in MOVE_KEYS:
