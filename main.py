@@ -3,10 +3,12 @@
 import arcade
 
 from game_window import GameWindow
+from menu_view import MenuView
 
 
 def main():
-    GameWindow()
+    window = GameWindow()
+    window.show_view(MenuView())
     arcade.run()
 
 
