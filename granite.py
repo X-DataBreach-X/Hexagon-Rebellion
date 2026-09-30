@@ -60,3 +60,25 @@ def create_granite_texture(width, height):
     rows = -(-int(height) // PIXEL_SIZE)
     image = Image.fromarray(granite_pixels(columns, rows), "RGB").convert("RGBA")
     return arcade.Texture(image, hash=f"granite-{SEED}-{columns}x{rows}")
+
+
+class GraniteBackground:
+    """A full-screen granite background for menu screens."""
+
+    def __init__(self, width, height):
+        # Built big enough for fullscreen so resizing doesn't rebuild it.
+        screen_w, screen_h = arcade.get_display_size()
+        self.texture = create_granite_texture(max(screen_w, width), max(screen_h, height))
+
+    def resize(self, width, height):
+        """Rebuild only if the window outgrew the texture (e.g. a bigger monitor)."""
+        if width > self.texture.width * PIXEL_SIZE or height > self.texture.height * PIXEL_SIZE:
+            self.texture = create_granite_texture(width, height)
+
+    def draw(self):
+        """Draw from the bottom-left corner. Use with the window's default camera."""
+        arcade.draw_texture_rect(
+            self.texture,
+            arcade.LBWH(0, 0, self.texture.width * PIXEL_SIZE, self.texture.height * PIXEL_SIZE),
+            pixelated=True,
+        )

@@ -54,7 +54,7 @@ class GameView(arcade.View):
     def on_update(self, delta_time):
         dx = sum(MOVE_KEYS[key][0] for key in self.keys_held)
         dy = sum(MOVE_KEYS[key][1] for key in self.keys_held)
-        self.player.move(dx, dy, delta_time, WORLD_WIDTH, WORLD_HEIGHT)
+        self.player.move(dx, dy, delta_time, (0, 0, WORLD_WIDTH, WORLD_HEIGHT))
         self._update_camera()
 
         # Convert the mouse from screen coordinates to world coordinates.

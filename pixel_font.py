@@ -1,4 +1,4 @@
-"""A small hand-made 5x7 pixel font for titles and buttons.
+"""A small hand-made 5x7 pixel font (A-Z, 0-9) for titles and buttons.
 
 Each letter is a grid of 7 rows, where "#" is a filled pixel. Text is
 rendered into a tiny image (1 image pixel per font pixel) and then drawn
@@ -40,20 +40,38 @@ GLYPHS = {
     "X": ["#...#", "#...#", ".#.#.", "..#..", ".#.#.", "#...#", "#...#"],
     "Y": ["#...#", "#...#", ".#.#.", "..#..", "..#..", "..#..", "..#.."],
     "Z": ["#####", "....#", "...#.", "..#..", ".#...", "#....", "#####"],
+    "0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
+    "1": ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
+    "2": [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
+    "3": ["####.", "....#", "....#", ".###.", "....#", "....#", "####."],
+    "4": ["...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#."],
+    "5": ["#####", "#....", "####.", "....#", "....#", "#...#", ".###."],
+    "6": [".###.", "#....", "#....", "####.", "#...#", "#...#", ".###."],
+    "7": ["#####", "....#", "...#.", "..#..", ".#...", ".#...", ".#..."],
+    "8": [".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###."],
+    "9": [".###.", "#...#", "#...#", ".####", "....#", "....#", ".###."],
+    # Arrows for drop-down menus.
+    "<": ["...#", "..##", ".###", "####", ".###", "..##", "...#"],
+    "v": [".......", ".......", "#######", ".#####.", "..###..", "...#...", "......."],
 }
 
 _texture_cache = {}
 
 
+def _normalize(text):
+    """Uppercase letters, leaving symbols like the "v" arrow alone."""
+    return text if text in GLYPHS else text.upper()
+
+
 def text_width(text):
     """Width of the text in font pixels (before scaling)."""
-    widths = [SPACE_WIDTH if ch == " " else len(GLYPHS[ch][0]) for ch in text.upper()]
+    widths = [SPACE_WIDTH if ch == " " else len(GLYPHS[ch][0]) for ch in _normalize(text)]
     return sum(widths) + LETTER_SPACING * (len(widths) - 1)
 
 
 def text_texture(text, color):
     """A texture of the text at 1 image pixel per font pixel."""
-    text = text.upper()
+    text = _normalize(text)
     key = (text, tuple(color))
     if key not in _texture_cache:
         image = Image.new("RGBA", (text_width(text), GLYPH_HEIGHT), (0, 0, 0, 0))
