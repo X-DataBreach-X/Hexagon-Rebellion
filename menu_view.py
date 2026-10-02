@@ -1,4 +1,4 @@
-"""The main menu: the title and the Play / Character / Settings buttons."""
+"""The main menu: the title and the Play / Character / Armory / Settings buttons."""
 
 import arcade
 
@@ -22,6 +22,7 @@ class MenuView(arcade.View):
         self.buttons = [
             ui.Button("Play", self.start_game),
             ui.Button("Character", self.open_character),
+            ui.Button("Armory", self.open_armory),
             ui.Button("Settings", lambda: None),    # Not built yet
         ]
         self.title_scale = TITLE_MAX_SCALE
@@ -36,8 +37,9 @@ class MenuView(arcade.View):
 
         # Stack the buttons around the center of the screen.
         center_x, center_y = self.width / 2, self.height / 2 + BUTTON_OFFSET_Y * scale
+        middle = (len(self.buttons) - 1) / 2
         for i, button in enumerate(self.buttons):
-            button.place(center_x, center_y + (1 - i) * (height + gap), width, height, scale)
+            button.place(center_x, center_y + (middle - i) * (height + gap), width, height, scale)
 
         # Title: as big as fits, centered between the top button and the top
         # of the screen. Whole-number scales keep the pixels perfectly square.
@@ -57,6 +59,10 @@ class MenuView(arcade.View):
     def open_character(self):
         from character_view import CharacterView
         self.window.show_view(CharacterView())
+
+    def open_armory(self):
+        from armory_view import ArmoryView
+        self.window.show_view(ArmoryView())
 
     def on_show_view(self):
         self._layout()
